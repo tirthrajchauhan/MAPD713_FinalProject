@@ -35,3 +35,51 @@ server.get('/patients', function (request, response, next) {
     response.send(patients)
   })
 })
+
+// Get a single patient by their user id
+server.get('/patients/:id', function (req, res, next) {
+
+  // Find a single patient  by their id within save
+  patientsSave.findOne({ _id: req.params.id }, function (error, patient) {
+    // If there are any errors, pass them to next in the correct format
+    if (error) return next(new restify.InvalidArgumentError(JSON.stringify(error.errors)))
+
+    if (patient) {
+      // Send the patient if no issues
+      res.send(patient)
+    } else {
+      // Send 404 header if the patient doesn't exist
+      res.send(404)
+    }
+  })
+})
+
+// method to create a new patient
+server.post('/patients', function (request, response, next) {
+  
+  // name is compulsory
+  if (request.params.name === undefined ) {
+    return next(new restify.InvalidArgumentError('Name must be supplied'))
+  }
+  // age is compulsory
+  if (request.params.age === undefined ) {
+    return next(new restify.InvalidArgumentError('Age must be supplied'))
+  }
+  // address is compulsory
+  if (request.params.address === undefined ) {
+    return next(new restify.InvalidArgumentError('Address must be supplied'))
+  }
+
+  var newPatient = {
+    name: request.params.name, 
+    age: request.params.age,
+    address: request.params.address
+  }
+
+  // creating the patient using the persistence engine
+  patientsSave.create( newPatient, function (error, patients) {
+    if (error) return next(new restify.InvalidArgumentError(JSON.stringify(error.errors)))
+    // send patient if no issues
+    response.send(201, patients)
+  })
+})
